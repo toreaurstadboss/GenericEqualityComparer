@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="../GenericEqualityComparer.Lib/GenericEqualityComparer.Lib.csproj" />
+  <Project Path="GenericEqualityComparer.csproj" />
+</Solution>
