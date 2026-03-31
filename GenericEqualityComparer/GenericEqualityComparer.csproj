@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\GenericEqualityComparer.Lib\GenericEqualityComparer.Lib.csproj" />
+    <ProjectReference Include="..\GenericEqualityComparer.Models\GenericEqualityComparer.Models.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,4 +1,9 @@
 <Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="../Readme.md" />
+  </Folder>
   <Project Path="../GenericEqualityComparer.Lib/GenericEqualityComparer.Lib.csproj" />
+  <Project Path="../GenericEqualityComparer.Models/GenericEqualityComparer.Models.csproj" />
+  <Project Path="../GenericEqualityComparer.Tests/GenericEqualityComparer.Tests.csproj" />
   <Project Path="GenericEqualityComparer.csproj" />
 </Solution>
