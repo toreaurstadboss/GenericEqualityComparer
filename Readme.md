@@ -123,6 +123,61 @@ var carWrapper1 = carEqualityComparer.For(car1);
 var carWrapper2 = carEqualityComparer.For(car2);
 bool areEqual = carWrapper1.Equals(carWrapper2);
 ``` 
+### EqualityWrapper<T> and the == / != operators
+
+C# doesn't allow overloading == and != on a generic type parameter T in an external comparer class. As a workaround, GenericEqualityComparer<T> exposes a For(value) method that returns an EqualityWrapper<T>. The wrapper carries both the value and the comparer, so its == and != operators delegate to the comparer instead of defaulting to reference equality.
+#### Basic operator usage
+
+````csharp
+var comparer = new GenericEqualityComparer<Car>();
+
+var car1 = new Car { Make = "Toyota", Model = "Camry", Year = 2020 };
+var car2 = new Car { Make = "Toyota", Model = "Camry", Year = 2020 };
+var car3 = new Car { Make = "Toyota", Model = "Corolla", Year = 2020 };
+
+bool same      = comparer.For(car1) == comparer.For(car2);  // True
+bool different = comparer.For(car1) != comparer.For(car3);  // True
+```
+
+#### With private member detection
+  
+````csharp
+var deepComparer = new GenericEqualityComparer<Car>(includePrivateFields: true);
+
+var ford1 = new Car { Make = "Ford", Model = "Focus", Year = 2022 };
+var ford2 = new Car { Make = "Ford", Model = "Focus", Year = 2022 };
+ford1.SetSecretAssemblyNumber("ASM-001");
+ford2.SetSecretAssemblyNumber("ASM-999");
+
+if (deepComparer.For(ford1) != deepComparer.For(ford2))
+{
+    Console.WriteLine("Cars differ (private field detected)");
+}
+```
+
+### Consistent hashing
+
+EqualityWrapper<T> also overrides GetHashCode() so it stays consistent with ==. This means wrapped values can be used safely as dictionary keys or in hash sets.
+
+var comparer = new GenericEqualityComparer<Car>();
+var car1     = new Car { Make = "Toyota", Model = "Camry", Year = 2020 };
+var car2     = new Car { Make = "Toyota", Model = "Camry", Year = 2020 };
+
+int hash1 = comparer.For(car1).GetHashCode();
+int hash2 = comparer.For(car2).GetHashCode();
+
+Console.WriteLine(hash1 == hash2);  // True — equal objects, equal hashes
+
+#### When not to use it
+Performance: The comparer uses reflection to discover members at construction time (compiled to delegates for speed), but it is still a little slower than a hand-written Equals. Avoid it in tight loops or hot paths.
+
+    Records — C# records already have value equality built in. Use == directly.
+    Structs — Same as records; value equality is the default.
+    Classes you own — Prefer overriding Equals / GetHashCode or implementing IEquatable<T> for production code (due to performance). Use this comparer for tests, prototyping, or third-party types you can't modify. Or if you just would like a simple way of providing value based equality checks, but in that case you should
+    really
+    consider a specific implementation.
+
+In case you work with generated code or for got a large number of POCO classes (Data transfer objects) and want to avoid using inheritance or adding value equality of your existing code, this code allows you adding value based equality, this code shown here should have you covered with a generic util class. 
 
 
 ### Conclusion
