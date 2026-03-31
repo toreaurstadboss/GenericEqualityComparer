@@ -128,7 +128,7 @@ bool areEqual = carWrapper1.Equals(carWrapper2);
 C# doesn't allow overloading == and != on a generic type parameter T in an external comparer class. As a workaround, GenericEqualityComparer<T> exposes a For(value) method that returns an EqualityWrapper<T>. The wrapper carries both the value and the comparer, so its == and != operators delegate to the comparer instead of defaulting to reference equality.
 #### Basic operator usage
 
-````csharp
+```csharp
 var comparer = new GenericEqualityComparer<Car>();
 
 var car1 = new Car { Make = "Toyota", Model = "Camry", Year = 2020 };
@@ -141,7 +141,7 @@ bool different = comparer.For(car1) != comparer.For(car3);  // True
 
 #### With private member detection
   
-````csharp
+```csharp
 var deepComparer = new GenericEqualityComparer<Car>(includePrivateFields: true);
 
 var ford1 = new Car { Make = "Ford", Model = "Focus", Year = 2022 };
