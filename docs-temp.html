@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GenericEqualityComparer — Developer Guide</title>
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/csharp.min.js"></script>
+  <script>hljs.highlightAll();</script>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 860px; margin: 2rem auto; padding: 0 1.5rem; color: #24292f; line-height: 1.7; }
+    h1 { border-bottom: 2px solid #d0d7de; padding-bottom: .4rem; }
+    h2 { border-bottom: 1px solid #d0d7de; padding-bottom: .3rem; margin-top: 2.5rem; }
+    h3 { margin-top: 1.8rem; color: #0550ae; }
+    pre { border-radius: 6px; padding: 1rem; background: #f6f8fa; overflow-x: auto; }
+    code.hljs { border-radius: 6px; font-size: .9rem; }
+    .callout { background: #ddf4ff; border-left: 4px solid #0969da; padding: .7rem 1rem; border-radius: 4px; margin: 1rem 0; }
+    .callout.warn { background: #fff8c5; border-color: #bf8700; }
+    table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+    th, td { text-align: left; padding: .5rem .8rem; border: 1px solid #d0d7de; }
+    th { background: #f6f8fa; }
+    code { background: #f6f8fa; padding: .1em .35em; border-radius: 4px; font-size: .9em; }
+  </style>
+</head>
+<body>
+
+<h1>GenericEqualityComparer</h1>
+<p>
+  A reflection-based <code>IEqualityComparer&lt;T&gt;</code> that compares two objects
+  <strong>by their member values</strong> instead of by reference. Useful for plain C# classes
+  that don't override <code>Equals</code> and <code>GetHashCode</code> themselves.
+</p>
+
+<div class="callout">
+  <strong>Target audience:</strong> Entry-level and mid-level C# developers who need value-based
+  equality for classes they don't own or can't modify.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<h2>1 — The problem it solves</h2>
+
+<p>
+  In C#, <code>class</code> instances are compared <em>by reference</em> by default.
+  Two objects with identical data are <em>not</em> equal unless they are the same object in memory.
+</p>
+
+<pre><code class="hljs csharp">var car1 = new Car { Make = "Toyota", Model = "Camry", Year = 2020 };
+var car2 = new Car { Make = "Toyota", Model = "Camry", Year = 2020 };
+
+Console.WriteLine(car1 == car2);        // False — different object references
+Console.WriteLine(car1.Equals(car2));   // False — same reason</code></pre>
+
+<p>
+  <code>GenericEqualityComparer&lt;T&gt;</code> solves this without touching the class itself.
+  It uses reflection to compare each property (and optionally each field) value by value.
+</p>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<h2>2 — Quick start</h2>
+
+<h3>2.1 Compare public properties</h3>
+
+<pre><code class="hljs csharp">using GenericEqualityComparer.Lib;
+
+var comparer = new GenericEqualityComparer&lt;Car&gt;();
+
+var car1 = new Car { Make = "Toyota", Model = "Camry", Year = 2020 };
+var car2 = new Car { Make = "Toyota", Model = "Camry", Year = 2020 };
+var car3 = new Car { Make = "Toyota", Model = "Corolla", Year = 2020 };
+
+Console.WriteLine(comparer.Equals(car1, car2));  // True  — all properties match
+Console.WriteLine(comparer.Equals(car1, car3));  // False — Model differs</code></pre>
+
+<h3>2.2 Use it with LINQ or collections</h3>
+<p>
+  Because <code>GenericEqualityComparer&lt;T&gt;</code> implements
+  <code>IEqualityComparer&lt;T&gt;</code> you can pass it directly to LINQ methods and
+  collection APIs that accept one.
+</p>
+
+<pre><code class="hljs csharp">var cars = new List&lt;Car&gt;
+{
+    new Car { Make = "Toyota", Model = "Camry",   Year = 2020 },
+    new Car { Make = "Toyota", Model = "Camry",   Year = 2020 }, // duplicate
+    new Car { Make = "Toyota", Model = "Corolla", Year = 2021 },
+};
+
+var comparer = new GenericEqualityComparer&lt;Car&gt;();
+
+// Distinct by value
+var unique = cars.Distinct(comparer).ToList();  // 2 items
+
+// GroupBy by value
+var grouped = cars.GroupBy(c =&gt; c, comparer);</code></pre>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<h2>3 — Constructor options</h2>
+
+<p>
+  The constructor accepts three optional boolean flags. All default to <code>false</code>.
+</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Parameter</th>
+      <th>Type</th>
+      <th>What it includes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>includeFields</code></td>
+      <td><code>bool</code></td>
+      <td>Public instance fields</td>
+    </tr>
+    <tr>
+      <td><code>includePrivateProperties</code></td>
+      <td><code>bool</code></td>
+      <td>Private instance properties</td>
+    </tr>
+    <tr>
+      <td><code>includePrivateFields</code></td>
+      <td><code>bool</code></td>
+      <td>Private instance fields (also enables public fields)</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>3.1 Include private fields</h3>
+
+<p>
+  Imagine a <code>Car</code> class that stores a secret assembly number in a private field:
+</p>
+
+<pre><code class="hljs csharp">public class Car
+{
+    public string Make { get; set; } = string.Empty;
+    public string Model { get; set; } = string.Empty;
+    public int Year { get; set; }
+
+    // private — not visible to external code
+    private string _secretAssemblyNumber = string.Empty;
+    public void SetSecretAssemblyNumber(string number) =&gt; _secretAssemblyNumber = number;
+}</code></pre>
+
+<pre><code class="hljs csharp">var ford1 = new Car { Make = "Ford", Model = "Focus", Year = 2022 };
+var ford2 = new Car { Make = "Ford", Model = "Focus", Year = 2022 };
+ford1.SetSecretAssemblyNumber("ASM-001");
+ford2.SetSecretAssemblyNumber("ASM-999");  // intentionally different
+
+// Default comparer — only sees public properties, ignores the private field
+var defaultComparer = new GenericEqualityComparer&lt;Car&gt;();
+Console.WriteLine(defaultComparer.Equals(ford1, ford2));  // True (field ignored)
+
+// Include private fields — now the hidden difference is detected
+var deepComparer = new GenericEqualityComparer&lt;Car&gt;(includePrivateFields: true);
+Console.WriteLine(deepComparer.Equals(ford1, ford2));     // False</code></pre>
+
+<h3>3.2 Include private properties</h3>
+
+<p>
+  The same idea applies when a class uses a private <em>property</em> as an internal identifier:
+</p>
+
+<pre><code class="hljs csharp">public class Bicycle
+{
+    public string Brand { get; set; } = string.Empty;
+    public string Model { get; set; } = string.Empty;
+
+    private string FrameSerialNumber { get; set; } = string.Empty;
+    public void SetFrameSerialNumber(string sn) =&gt; FrameSerialNumber = sn;
+}</code></pre>
+
+<pre><code class="hljs csharp">var bike1 = new Bicycle { Brand = "Trek", Model = "FX3" };
+var bike2 = new Bicycle { Brand = "Trek", Model = "FX3" };
+bike1.SetFrameSerialNumber("SN-001");
+bike2.SetFrameSerialNumber("SN-999");
+
+var defaultComparer = new GenericEqualityComparer&lt;Bicycle&gt;();
+Console.WriteLine(defaultComparer.Equals(bike1, bike2));  // True
+
+var deepComparer = new GenericEqualityComparer&lt;Bicycle&gt;(includePrivateProperties: true);
+Console.WriteLine(deepComparer.Equals(bike1, bike2));     // False</code></pre>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<h2>4 — EqualityWrapper&lt;T&gt; and the == / != operators</h2>
+
+<p>
+  C# doesn't allow overloading <code>==</code> and <code>!=</code> on a generic type
+  parameter <code>T</code> in an external comparer class. As a workaround,
+  <code>GenericEqualityComparer&lt;T&gt;</code> exposes a <code>For(value)</code> method
+  that returns an <strong><code>EqualityWrapper&lt;T&gt;</code></strong>. The wrapper
+  carries both the value and the comparer, so its <code>==</code> and <code>!=</code>
+  operators delegate to the comparer instead of defaulting to reference equality.
+</p>
+
+<h3>4.1 Basic operator usage</h3>
+
+<pre><code class="hljs csharp">var comparer = new GenericEqualityComparer&lt;Car&gt;();
+
+var car1 = new Car { Make = "Toyota", Model = "Camry", Year = 2020 };
+var car2 = new Car { Make = "Toyota", Model = "Camry", Year = 2020 };
+var car3 = new Car { Make = "Toyota", Model = "Corolla", Year = 2020 };
+
+bool same      = comparer.For(car1) == comparer.For(car2);  // True
+bool different = comparer.For(car1) != comparer.For(car3);  // True</code></pre>
+
+<h3>4.2 With private member detection</h3>
+
+<pre><code class="hljs csharp">var deepComparer = new GenericEqualityComparer&lt;Car&gt;(includePrivateFields: true);
+
+var ford1 = new Car { Make = "Ford", Model = "Focus", Year = 2022 };
+var ford2 = new Car { Make = "Ford", Model = "Focus", Year = 2022 };
+ford1.SetSecretAssemblyNumber("ASM-001");
+ford2.SetSecretAssemblyNumber("ASM-999");
+
+if (deepComparer.For(ford1) != deepComparer.For(ford2))
+{
+    Console.WriteLine("Cars differ (private field detected)");
+}</code></pre>
+
+<h3>4.3 Consistent hashing</h3>
+
+<p>
+  <code>EqualityWrapper&lt;T&gt;</code> also overrides <code>GetHashCode()</code>
+  so it stays consistent with <code>==</code>. This means wrapped values can be used
+  safely as dictionary keys or in hash sets.
+</p>
+
+<pre><code class="hljs csharp">var comparer = new GenericEqualityComparer&lt;Car&gt;();
+var car1     = new Car { Make = "Toyota", Model = "Camry", Year = 2020 };
+var car2     = new Car { Make = "Toyota", Model = "Camry", Year = 2020 };
+
+int hash1 = comparer.For(car1).GetHashCode();
+int hash2 = comparer.For(car2).GetHashCode();
+
+Console.WriteLine(hash1 == hash2);  // True — equal objects, equal hashes</code></pre>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<h2>5 — When not to use it</h2>
+
+<div class="callout warn">
+  <strong>Performance:</strong> The comparer uses reflection to discover members at construction
+  time (compiled to delegates for speed), but it is still slower than a hand-written
+  <code>Equals</code>. Avoid it in tight loops or hot paths.
+</div>
+
+<ul>
+  <li>
+    <strong>Records</strong> — C# records already have value equality built in.
+    Use <code>==</code> directly.
+  </li>
+  <li>
+    <strong>Structs</strong> — Same as records; value equality is the default.
+  </li>
+  <li>
+    <strong>Classes you own</strong> — Prefer overriding <code>Equals</code> /
+    <code>GetHashCode</code> or implementing <code>IEquatable&lt;T&gt;</code>
+    for production code. Use this comparer for tests, prototyping, or
+    third-party types you can't modify.
+  </li>
+</ul>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<h2>6 — Summary</h2>
+
+<table>
+  <thead>
+    <tr><th>What you want</th><th>How</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Compare public properties</td>
+      <td><code>new GenericEqualityComparer&lt;T&gt;()</code></td>
+    </tr>
+    <tr>
+      <td>Also include public fields</td>
+      <td><code>new GenericEqualityComparer&lt;T&gt;(includeFields: true)</code></td>
+    </tr>
+    <tr>
+      <td>Also include private properties</td>
+      <td><code>new GenericEqualityComparer&lt;T&gt;(includePrivateProperties: true)</code></td>
+    </tr>
+    <tr>
+      <td>Also include private fields</td>
+      <td><code>new GenericEqualityComparer&lt;T&gt;(includePrivateFields: true)</code></td>
+    </tr>
+    <tr>
+      <td>Use <code>==</code> / <code>!=</code> operators</td>
+      <td><code>comparer.For(a) == comparer.For(b)</code></td>
+    </tr>
+    <tr>
+      <td>Use with LINQ</td>
+      <td><code>list.Distinct(comparer)</code>, <code>list.GroupBy(x =&gt; x, comparer)</code></td>
+    </tr>
+  </tbody>
+</table>
+
+</body>
+</html>

@@ -91,8 +91,8 @@ namespace GenericEqualizer
             Console.WriteLine($"ford1 equals ford3 (default):               {defaultCarComparer.Equals(ford1, ford3)}"); // True  - different, but ignored
             Console.WriteLine($"ford1 equals ford2 (includePrivateFields):  {privateFieldsCarComparer.Equals(ford1, ford2)}"); // True  - same
             Console.WriteLine($"ford1 equals ford3 (includePrivateFields):  {privateFieldsCarComparer.Equals(ford1, ford3)}"); // False - different detected
-       
-       
+
+
             // -------------------------------------------------------
             // Using For() to create equality wrappers and compare with == / != operators for Car
             // -------------------------------------------------------

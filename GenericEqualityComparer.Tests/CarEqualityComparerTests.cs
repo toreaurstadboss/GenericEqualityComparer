@@ -10,10 +10,10 @@ public class CarEqualityComparerTests
     // Public properties only (default comparer)
     // -------------------------------------------------------
 
-    [TestCase("Toyota", "Camry",   2020, "Toyota", "Camry",   2020, ExpectedResult = true,  TestName = "Same make/model/year returns true")]
-    [TestCase("Toyota", "Camry",   2020, "Toyota", "Corolla", 2020, ExpectedResult = false, TestName = "Different model returns false")]
-    [TestCase("Toyota", "Camry",   2020, "Ford",   "Camry",   2020, ExpectedResult = false, TestName = "Different make returns false")]
-    [TestCase("Toyota", "Camry",   2020, "Toyota", "Camry",   2021, ExpectedResult = false, TestName = "Different year returns false")]
+    [TestCase("Toyota", "Camry", 2020, "Toyota", "Camry", 2020, ExpectedResult = true, TestName = "Same make/model/year returns true")]
+    [TestCase("Toyota", "Camry", 2020, "Toyota", "Corolla", 2020, ExpectedResult = false, TestName = "Different model returns false")]
+    [TestCase("Toyota", "Camry", 2020, "Ford", "Camry", 2020, ExpectedResult = false, TestName = "Different make returns false")]
+    [TestCase("Toyota", "Camry", 2020, "Toyota", "Camry", 2021, ExpectedResult = false, TestName = "Different year returns false")]
     public bool Equals_PublicProperties_ReturnsExpected(
         string make1, string model1, int year1,
         string make2, string model2, int year2)

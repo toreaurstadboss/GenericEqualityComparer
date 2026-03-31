@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace GenericEqualityComparer.Lib
 {
-    
+
     /// <summary>
     /// A reflection-based <see cref="IEqualityComparer{T}"/> that compares instances of
     /// <typeparamref name="T"/> by their members rather than by reference.
@@ -40,14 +40,16 @@ namespace GenericEqualityComparer.Lib
 
         private void CreatePropertyGetters(bool includePrivateProperties)
         {
-            var props = typeof(T).GetProperties(BindingFlags.Instance | BindingFlags.Public).Where(m => m.GetMethod != null).ToList();
+            var bindingFlags = BindingFlags.Instance | BindingFlags.Public;
             if (includePrivateProperties)
             {
-                var privateProps = typeof(T).GetProperties(BindingFlags.Instance | BindingFlags.NonPublic).Where(m => m.GetMethod != null).ToList();
-                props.AddRange(privateProps);
+                bindingFlags |= BindingFlags.NonPublic;
             }
 
-            foreach (var prop in props) {
+            var props = typeof(T).GetProperties(bindingFlags).Where(m => m.GetMethod != null).ToList();
+
+            foreach (var prop in props)
+            {
 
                 //Builds the Expression<Func<T, object>> for the property getter and compiles it into a Func<T, object> delegate, which is cached for later use.
                 ParameterExpression parameter = Expression.Parameter(typeof(T), "p");
@@ -103,7 +105,7 @@ namespace GenericEqualityComparer.Lib
             if (x.GetType() != y.GetType())
             {
                 return false;
-            }            
+            }
 
             foreach (var propAccessor in _propertyGetters)
             {
@@ -127,7 +129,7 @@ namespace GenericEqualityComparer.Lib
             }
 
 
-            return true; 
+            return true;
         }
 
         /// <summary>
@@ -154,11 +156,11 @@ namespace GenericEqualityComparer.Lib
             {
                 hash = HashCode.Combine(hash,
                     propertyValues.ElementAtOrDefault(i),
-                    propertyValues.ElementAtOrDefault(i+1),
-                    propertyValues.ElementAtOrDefault(i+2),
-                    propertyValues.ElementAtOrDefault(i+3),
-                    propertyValues.ElementAtOrDefault(i+4),
-                    propertyValues.ElementAtOrDefault(i +5),
+                    propertyValues.ElementAtOrDefault(i + 1),
+                    propertyValues.ElementAtOrDefault(i + 2),
+                    propertyValues.ElementAtOrDefault(i + 3),
+                    propertyValues.ElementAtOrDefault(i + 4),
+                    propertyValues.ElementAtOrDefault(i + 5),
                     propertyValues.ElementAtOrDefault(i + 6));
             }
 
@@ -178,7 +180,7 @@ namespace GenericEqualityComparer.Lib
                 }
             }
 
-            return hash;              
+            return hash;
         }
 
     }

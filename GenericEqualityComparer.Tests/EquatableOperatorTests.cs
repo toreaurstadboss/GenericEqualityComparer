@@ -24,7 +24,7 @@ public class EqualityWrapperOperatorTests
     public void OperatorNotEquals_DifferentModel_ReturnsTrue()
     {
         var comparer = new GenericEqualityComparer<Car>();
-        var car1 = new Car { Make = "Toyota", Model = "Camry",   Year = 2020 };
+        var car1 = new Car { Make = "Toyota", Model = "Camry", Year = 2020 };
         var car2 = new Car { Make = "Toyota", Model = "Corolla", Year = 2020 };
 
         Assert.That(comparer.For(car1) != comparer.For(car2), Is.True);

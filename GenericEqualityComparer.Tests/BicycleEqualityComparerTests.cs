@@ -10,8 +10,8 @@ public class BicycleEqualityComparerTests
     // Public properties (default comparer)
     // -------------------------------------------------------
 
-    [TestCase("Trek", "FX3", "Trek", "FX3",  ExpectedResult = true,  TestName = "Same brand and model returns true")]
-    [TestCase("Trek", "FX3", "Trek", "FX2",  ExpectedResult = false, TestName = "Different model returns false")]
+    [TestCase("Trek", "FX3", "Trek", "FX3", ExpectedResult = true, TestName = "Same brand and model returns true")]
+    [TestCase("Trek", "FX3", "Trek", "FX2", ExpectedResult = false, TestName = "Different model returns false")]
     [TestCase("Trek", "FX3", "Giant", "FX3", ExpectedResult = false, TestName = "Different brand returns false")]
     public bool Equals_PublicProperties_ReturnsExpected(
         string brand1, string model1,

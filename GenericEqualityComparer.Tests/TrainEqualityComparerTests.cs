@@ -11,15 +11,15 @@ public class TrainEqualityComparerTests
     // -------------------------------------------------------
 
     [TestCase("R7", "Type76", 6, FuelType.DieselElectric,
-              "R7",  "Type76", 6, FuelType.DieselElectric, ExpectedResult = true,  TestName = "Identical trains return true")]
-    [TestCase("R7", "Type76", 6, FuelType.DieselElectric, 
-              "R7",  "Type76", 6, FuelType.Diesel,         ExpectedResult = false, TestName = "Different fuel type returns false")]
-    [TestCase("R7", "Type76", 6, FuelType.DieselElectric, 
-              "R8",  "Type76", 6, FuelType.DieselElectric, ExpectedResult = false, TestName = "Different route returns false")]
+              "R7", "Type76", 6, FuelType.DieselElectric, ExpectedResult = true, TestName = "Identical trains return true")]
     [TestCase("R7", "Type76", 6, FuelType.DieselElectric,
-              "R7",  "Type76", 4, FuelType.DieselElectric, ExpectedResult = false, TestName = "Different car count returns false")]
-    [TestCase("R7", "Type76", 6, FuelType.Electric,      
-              "R7",  "Type76", 6, FuelType.Steam,          ExpectedResult = false, TestName = "Electric vs Steam returns false")]
+              "R7", "Type76", 6, FuelType.Diesel, ExpectedResult = false, TestName = "Different fuel type returns false")]
+    [TestCase("R7", "Type76", 6, FuelType.DieselElectric,
+              "R8", "Type76", 6, FuelType.DieselElectric, ExpectedResult = false, TestName = "Different route returns false")]
+    [TestCase("R7", "Type76", 6, FuelType.DieselElectric,
+              "R7", "Type76", 4, FuelType.DieselElectric, ExpectedResult = false, TestName = "Different car count returns false")]
+    [TestCase("R7", "Type76", 6, FuelType.Electric,
+              "R7", "Type76", 6, FuelType.Steam, ExpectedResult = false, TestName = "Electric vs Steam returns false")]
     public bool Equals_PublicProperties_ReturnsExpected(
         string route1, string type1, int cars1, FuelType fuel1,
         string route2, string type2, int cars2, FuelType fuel2)
